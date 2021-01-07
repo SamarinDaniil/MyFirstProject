@@ -1,0 +1,158 @@
+import pygame
+import random
+
+WIDTH = 1080
+HEIGHT = 680
+FPS = 60
+
+# Задаем цвета
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+YELLOW = (255, 255, 0)
+
+# Создаем игру и окно
+pygame.init()
+pygame.mixer.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Game!")
+clock = pygame.time.Clock()
+
+
+class Player2(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((50, 40))
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = WIDTH / 2
+        self.rect.bottom = HEIGHT / 2
+        self.speedx = 0
+
+    def update(self):
+        self.speedx = 0
+        keystate = pygame.key.get_pressed()
+        if keystate[pygame.K_a]:
+            self.speedx = -8
+        if keystate[pygame.K_d]:
+            self.speedx = 8
+        self.rect.x += self.speedx
+        if keystate[pygame.K_w]:
+            self.speedx = -8
+            self.rect.y += self.speedx
+        if keystate[pygame.K_s]:
+            self.speedx = 8
+            self.rect.y += self.speedx
+        if self.rect.top > HEIGHT - 40 :
+            self.rect.top = HEIGHT - 40
+        if self.rect.bottom < 50:
+            self.rect.bottom = 50
+        if self.rect.right > WIDTH:
+            self.rect.right = WIDTH
+        if self.rect.left < 0:
+            self.rect.left = 0
+
+    def shoot(self):
+        bullet = Bullet(self.rect.centerx, self.rect.top)
+        all_sprites.add(bullet)
+        bullets.add(bullet)
+
+
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((50, 40))
+        self.image.fill(GREEN)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = WIDTH / 2
+        self.rect.bottom = HEIGHT - 10
+        self.speedx = 0
+
+    def update(self):
+        self.speedx = 0
+        keystate = pygame.key.get_pressed()
+        if keystate[pygame.K_LEFT]:
+            self.speedx = -8
+        if keystate[pygame.K_RIGHT]:
+            self.speedx = 8
+        self.rect.x += self.speedx
+        if keystate[pygame.K_UP]:
+            self.speedx = -8
+            self.rect.y += self.speedx
+        if keystate[pygame.K_DOWN]:
+            self.speedx = 8
+            self.rect.y += self.speedx
+        if self.rect.top > HEIGHT - 40 :
+            self.rect.top = HEIGHT - 40
+        if self.rect.bottom < 50:
+            self.rect.bottom = 50
+        if self.rect.right > WIDTH:
+            self.rect.right = WIDTH
+        if self.rect.left < 0:
+            self.rect.left = 0
+
+    def shoot(self):
+        bullet = Bullet(self.rect.centerx, self.rect.top)
+        all_sprites.add(bullet)
+        bullets.add(bullet)
+
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((10, 20))
+        self.image.fill(YELLOW)
+        self.rect = self.image.get_rect()
+        self.rect.bottom = y
+        self.rect.centerx = x
+        self.speedy = -10
+
+    def update(self):
+        self.rect.y += self.speedy
+        if self.rect.bottom < 0:
+            self.kill()
+
+all_sprites = pygame.sprite.Group()
+bullets = pygame.sprite.Group()
+player = Player()
+player2 = Player2()
+all_sprites.add(player)
+all_sprites.add(player2)
+
+
+# Цикл игры
+running = True
+while running:
+    # Держим цикл на правильной скорости
+    clock.tick(FPS)
+    # Ввод процесса (события)
+    for event in pygame.event.get():
+        # проверка для закрытия окна
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                player.shoot()
+            if event.key == pygame.K_e:
+                player2.shoot()
+
+    # Обновление
+    all_sprites.update()
+
+    hits = pygame.sprite.spritecollide(player, bullets, False)
+    if hits:
+        running = False
+    hits = pygame.sprite.spritecollide(player2, bullets, False)
+    if hits:
+        running = False
+
+    # Рендеринг
+    screen.fill(BLACK)
+    all_sprites.draw(screen)
+    # После отрисовки всего, переворачиваем экран
+    pygame.display.flip()
+
+pygame.quit()
